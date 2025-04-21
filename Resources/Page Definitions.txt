@@ -1,0 +1,199 @@
+﻿Planogram Web Application: Page Structure & Functionality
+This document outlines the key pages required for the planogram management web application, based on the established database schema and functional requirements. Each page description includes its purpose, core features, UI details, and user interactions.
+1. Login Page
+* Purpose: Authenticate users before granting access to the application.
+* Target Users: All users (Category Managers, Admins).
+* Functionality & Features:
+   * Displays input fields for Username (or Email) and Password.
+   * Includes a "Login" or "Sign In" button to submit credentials.
+   * Handles authentication against the USERS table and Firebase Authentication (via your backend API).
+   * Displays clear error messages for invalid credentials (e.g., "Invalid username or password").
+   * Upon successful login, redirects the user to the Dashboard Page and establishes a session/token.
+   * (Optional) Link for "Forgot Password?" functionality.
+   * Link to the "Sign Up / Interest Form" page for prospective clients.
+* UI Description (Based on UI.pdf):
+   * Title: "Enter your details" prominently displayed.
+   * Input Field 1: Labeled "Username or Email-". Standard text input.
+   * Input Field 2: Labeled "Password-". Standard password input (masked characters).
+   * Login Button: Rectangular button labeled "Login".
+      * Hover Animation: On hover, smoothly transitions (ease-in-out) to include an arrow icon (east) sliding in from the left or right next to the text.
+   * Sign Up Prompt: Text "Don't have an account?" displayed below the login button.
+   * Join Us Button/Link: Text link labeled "Join us" positioned near the prompt above. This should navigate to the "Sign Up / Interest Form Page".
+      * Hover Animation: On hover, smoothly transitions (ease-in-out) to include an arrow icon (east) sliding in next to the text.
+   * Forgot Password Link: Text link "Forgot password Don't worry, we got you!" displayed at the bottom.
+1.A. Sign Up / Interest Form Page
+* Purpose: Collect initial information from companies interested in potentially using the planogram software. This page is for lead generation and qualification, not for creating end-user accounts directly.
+* Target Users: Representatives from prospective client companies (e.g., Supermarket Managers, IT leads, Head Category Managers).
+* Functionality & Features:
+   * Clear title like "Interested in Our Planogram Solution?" or "Request Consultation".
+   * Brief explanation that this form is for expressing interest and an account manager will follow up.
+   * Input Form Fields:
+      * Company Name (Text, Required)
+      * Company Website (URL, Optional)
+      * Business Registration number (Text, Optional but requested in follow-up)
+      * Contact Person Name (Text, Required)
+      * Contact Person Email (Email, Required)
+      * Contact Person Phone Number (Phone, Optional)
+      * Number of Stores Operated (Dropdown/Radio Buttons/Segmented Control with ranges like '1-10', '11-50', '51-100', '100+', Required)
+      * Estimated Number of Potential Users (e.g., Category Managers) (Text Input or Dropdown/Radio with ranges like '1-5', '6-20', '21-100', '100+', Required)
+      * Current Planogram Method (Dropdown/Radio Buttons/Segmented Control: 'Manual/Spreadsheets', 'Software', 'None', 'Other', Optional)
+      * If Existing Software, Which One? (Text, Optional - conditionally visible based on previous selection)
+      * Key Challenges or Needs related to Planograms (Text Area, Optional - Helps understand pain points)
+      * (Optional) How did you hear about us? (Dropdown/Text)
+   * Input validation for required fields and formats (email, URL, phone).
+   * A "Submit Interest" or "Request Information" button.
+   * Submission Action:
+      * Sends the collected form data to a designated internal email address (fetched from appConfig) or backend endpoint for the sales/onboarding team.
+      * Optionally creates a record in the leads collection in Firestore.
+      * Does NOT create a user account in the users collection.
+   * Redirects to the Submission Confirmation page upon successful submission.
+* UI Description (Based on UI.pdf):
+   * Title: "Company information form".
+   * Subtitle/Intro: Text: "Interested in Our Planogram Solution? Please take some time to fill this form so we can find the best way to serve your needs."
+   * Input Fields: Standard text input fields provided for:
+      * "Company name"
+      * "Contact Person Email"
+      * "Company Website"
+      * "Business Registration no."
+      * "Contact Person Phone Number"
+      * "Estimated number of potential users" (Suggestion: Consider using ranges like 'Number of Stores' for consistency and easier data analysis).
+      * "Using software, which one?" (This field should likely only appear if "Software" is selected for the current method).
+   * Segmented Control/Radio Group 1: Labeled "Number of Stores Operated". Options presented horizontally or grouped: "1-10", "11-50", "51-100", "100+". Allows single selection.
+   * Segmented Control/Radio Group 2: Labeled "Current planogram method". Options: "Manual spreadsheet", "Software". Allows single selection. (Suggestion: Add 'None' and 'Other' options as listed in the features).
+   * Submit Button: Rectangular button labeled "Submit".
+      * Hover Animation: On hover, smoothly transitions (ease-in-out) to include an arrow icon (east) sliding in from the left or right next to the text.
+1.B. Submission Confirmation Page
+* Purpose: Inform the prospective client that their interest form submission was successful and provide contact information for follow-up.
+* Target Users: Representatives from prospective client companies who just submitted the form.
+* Functionality & Features:
+   * Displays a clear success message.
+   * Provides the company's contact email address (fetched from appConfig).
+   * Allows easy copying of the email address.
+   * Instructs the user on what information to include if they email directly.
+* UI Description (Based on UI.pdf):
+   * Icon: A checkmark icon - task_alt
+   * Title: "Thank you, we'll reach out soon!"
+   * Instructional Text: "If you wish to make any changes to the form or have additional enquiries, please send us an email."
+   * Email Display: The company's contact email address (e.g., "your-company-sales-email@example.com" fetched from appConfig) displayed clearly.
+   * Copy Icon: A clickable icon (content_copy) placed next to the email address. Clicking this copies the email address to the clipboard.
+   * Further Instruction: Text: "Make sure to include your business registration number in your message."
+2. Dashboard Page
+* Purpose: Provide a high-level overview and quick access to key areas after login.
+* Target Users: All logged-in users.
+* Functionality & Features:
+   * Displays key performance indicators (KPIs) or summary statistics (e.g., "Number of Active Planograms", "Recently Updated Products", perhaps basic aggregate sales/profit data if available).
+   * Shows a list of recently accessed/modified Planograms or Products.
+   * Provides quick action buttons/links (e.g., "Create New Planogram", "Add New Product").
+   * May include notifications or alerts relevant to the user.
+   * Acts as the main landing page after login.
+3. Product Management Page
+* Purpose: Allow users to view, add, edit, and delete product information.
+* Target Users: Category Managers, Admins.
+* Functionality & Features:
+   * List View:
+      * Displays a table or grid of products from the /companies/{companyId}/products subcollection.
+      * Columns should include key info like: Thumbnail (from imageUrl), productName, sku, categoryName (fetched via categoryId), brandName (fetched via brandId), dimensions (WxHxD), mrp, costPrice.
+      * Search: Input field to search products by Name, SKU.
+      * Filtering: Options to filter products by Category, Brand, Supplier.
+      * Sorting: Ability to sort the table by various columns (Name, SKU, Category, etc.).
+      * Pagination: Handles large numbers of products by displaying them across multiple pages.
+      * Actions per row: Buttons/icons to "Edit" and "Delete" a product (with confirmation for delete).
+      * "Add New Product" Button: Navigates to the Add/Edit Product form.
+   * Add/Edit Form (Can be a separate page or modal):
+      * Provides input fields for all attributes in the products document structure (sku, productName, description, imageUrl, dimensions.width, dimensions.height, dimensions.depth, mrp, costPrice).
+      * Dropdowns (populated from the relevant company subcollections) to select Category, Brand, Supplier (storing the Document ID: categoryId, brandId, supplierId).
+      * Input validation (e.g., required fields, numeric values for dimensions/prices, valid URL format).
+      * "Save" button to submit the form (calls backend API to create/update document in /companies/{companyId}/products).
+      * "Cancel" button to discard changes and return to the list view.
+      * When editing, the form should be pre-populated with the existing product data.
+4. Fixture Management Page
+* Purpose: Allow users to define and manage the physical fixtures (shelving units) used in planograms for their company.
+* Target Users: Category Managers, Admins.
+* Functionality & Features:
+   * List View:
+      * Displays a table/grid of fixtures from the /companies/{companyId}/fixtures subcollection.
+      * Columns: fixtureName, fixtureType, Dimensions (width, height, depth), numShelves.
+      * Search/Filter/Sort capabilities (e.g., search by Name, filter by Type).
+      * Pagination.
+      * Actions per row: "Edit", "Delete" (with confirmation).
+      * "Add New Fixture" Button: Navigates to the Add/Edit Fixture form.
+   * Add/Edit Form:
+      * Input fields for fixtureName, fixtureType (dropdown), width, height, depth, numShelves.
+      * Mechanism to input shelfDetails array if needed.
+      * Input validation.
+      * "Save" and "Cancel" buttons.
+      * Pre-populates data when editing.
+5. Category Management Page
+* Purpose: Manage product categories for the company.
+* Target Users: Category Managers, Admins.
+* Functionality & Features:
+   * List View:
+      * Displays categories from the /companies/{companyId}/categories subcollection.
+      * Columns: categoryName, description.
+      * Search/Sort capabilities.
+      * Actions per row: "Edit", "Delete" (check for dependencies).
+      * "Add New Category" Button.
+   * Add/Edit Form:
+      * Input fields for categoryName, description.
+      * Validation (e.g., name required and unique within the company).
+      * "Save" and "Cancel" buttons.
+      * Pre-populates data when editing.
+6. Brand Management Page
+* Purpose: Manage product brands for the company.
+* Target Users: Category Managers, Admins.
+* Functionality & Features: (Similar structure to Category Management)
+   * List View: Displays brands from /companies/{companyId}/brands (brandName). Search/Sort. Edit/Delete. "Add New Brand" Button.
+   * Add/Edit Form: Input for brandName. Validation. Save/Cancel. Pre-populate.
+7. Supplier Management Page
+* Purpose: Manage product suppliers for the company.
+* Target Users: Category Managers, Admins.
+* Functionality & Features: (Similar structure to Category Management)
+   * List View: Displays suppliers from /companies/{companyId}/suppliers (supplierName, contactInfo). Search/Sort. Edit/Delete. "Add New Supplier" Button.
+   * Add/Edit Form: Inputs for supplierName, contactInfo. Validation. Save/Cancel. Pre-populate.
+8. Planogram Management Page
+* Purpose: Allow users within a company to view, search, and manage their planograms, and initiate creation.
+* Target Users: Category Managers, Admins.
+* Functionality & Features:
+   * List View:
+      * Displays table/grid of planograms from the /companies/{companyId}/planograms subcollection.
+      * Columns: planogramName, fixtureName (fetch via fixtureId), categoryName (fetch via categoryId), status, effectiveStartDate, effectiveEndDate, creatorDisplayName (fetch via createdByUserId), updatedAt.
+      * Search: By planogramName.
+      * Filtering: By status, category, fixtureType, store (if storeId is used).
+      * Sorting: By Name, Status, Dates, etc.
+      * Pagination.
+      * Actions per row: "View/Open", "Edit", "Duplicate", "Delete" (with appropriate logic based on status).
+   * "Create New Planogram" Button: Initiates creation process (likely prompts for fixture selection first).
+9. Planogram Editor Page
+* Purpose: Provide the core visual interface for creating and modifying a company's planogram layouts.
+* Target Users: Category Managers, Admins.
+* Functionality & Features:
+   * Metadata Area: Displays/allows editing of planogramName, description, status, effectiveStartDate, effectiveEndDate. Selection of primary category (stores categoryId). (Store selection stores storeId if applicable). Displays associated fixtureName.
+   * Fixture Visualization Area: Visual representation of the selected Fixture (fetched using fixtureId). Shelves act as drop targets.
+   * Product Library Panel: List of available Products from /companies/{companyId}/products. Search/Filter by Category/Brand. Draggable product items.
+   * Drag-and-Drop Interaction: Place products onto shelves. Calculate placement. Prompt/adjust facings, stackHeight. Visual feedback. Prevent invalid placements.
+   * Placement Modification: Select placed items. Modify facings, stackHeight. Reposition via drag. Remove items.
+   * Properties/Analysis Panel: Details of selected shelf/product. Real-time metrics (Total Units, Est. Retail Value, Est. Gross Profit, Space Utilisation %).
+   * Toolbar/Actions: "Save" (updates document in /companies/{companyId}/planograms, including the items array). Zoom. Undo/Redo (optional). Change status.
+10. Planogram Viewer Page
+* Purpose: Display a finalized or existing planogram for the company in a read-only format.
+* Target Users: Category Managers, Admins, potentially Store Staff (view-only role).
+* Functionality & Features:
+   * Displays visual representation based on the items array in the planogram document.
+   * Displays key metadata from the planogram document (Name, Status, Dates, Fixture, Category).
+   * Shows detailed list of products (fetching names/details via productId in the items array) with placement details.
+   * Displays calculated analysis metrics.
+   * No editing capabilities.
+   * (Optional) "Print" or "Export to PDF" button.
+11. User Management Page (Admin Only)
+* Purpose: Allow administrators (potentially company admins or super admins) to manage user accounts within a specific company or across the platform. Scope needs clarification - assume Super Admin manages all users for now.
+* Target Users: Admins.
+* Functionality & Features:
+   * List View: Displays users from the top-level users collection. Columns: displayName, email, role, companyName (fetch via companyId), createdAt, isActive. Search/Sort/Filter by Role/Company. Edit/Deactivate actions. "Add New User" Button (would need to associate with a company).
+   * Add/Edit Form: Inputs for displayName, email, role (dropdown), companyId (dropdown/search to select company). Mechanism to set/reset password via Firebase Auth. Toggle isActive. Validation. Save/Cancel. Pre-populate.
+12. Store Management Page (Admin Only - If Applicable)
+* Purpose: Manage store locations for a specific company. This might be managed by Company Admins rather than Super Admins.
+* Target Users: Admins (potentially Company Admins).
+* Functionality & Features: (Operates on /companies/{companyId}/stores)
+   * List View: Displays stores (storeName, address, storeCode). Search/Sort. Edit/Delete. "Add New Store" Button.
+   * Add/Edit Form: Inputs for storeName, address, storeCode. Validation. Save/Cancel. Pre-populate.
+This structured list provides a comprehensive blueprint for the pages needed in your planogram web application. Each description details the core functionality required to meet the user needs and utilize the backend API you've built.

@@ -1,0 +1,213 @@
+﻿Planogram Application: Firebase Firestore Data Structure
+This document outlines a NoSQL data structure using Firebase Firestore for the planogram application. It incorporates a company-centric model and handles data originating from the interest form.
+Core Concepts:
+* Collections: Top-level containers for documents (e.g., companies, users, appConfig).
+* Documents: Individual records within collections, identified by a unique Document ID. They contain key-value pairs.
+* Subcollections: Collections nested within a document, allowing for hierarchical data organization (e.g., a company's products stored in a subcollection under that company's document).
+* Relationships: Often handled by storing Document IDs from related collections or by using subcollections.
+1. appConfig Collection
+* Purpose: Stores global application settings. Likely contains only one document.
+* Document ID: e.g., settings
+* Document Structure (/appConfig/settings):
+{
+ "interestFormRecipientEmail": "your-company-sales-email@example.com", // Email address where interest form submissions are sent
+ "lastUpdated": "Timestamp"
+ // Add other global settings as needed
+}
+
+2. leads Collection (Optional but Recommended)
+   * Purpose: To store the raw submissions from the "Sign Up / Interest Form Page". This provides a historical record of all inquiries.
+   * Document ID: Auto-generated ID for each submission.
+   * Document Structure (Example Document in /leads):
+{
+ "submissionTimestamp": "Timestamp",
+ "companyName": "Example Supermarket Co.",
+ "companyWebsite": "https://examplemart.com",
+ "businessRegistrationNumber": "ABN123456", // From user edit
+ "contactPersonName": "Jane Doe",
+ "contactPersonEmail": "jane.doe@examplemart.com",
+ "contactPersonPhone": "+1234567890",
+ "numberOfStoresRange": "11-50",
+ "estimatedUsersRange": "6-20",
+ "currentPlanogramMethod": "Existing Software (Please specify below)",
+ "existingSoftwareName": "Old POG System",
+ "keyChallenges": "Difficulty updating planograms across stores, poor analysis.",
+ "howHeard": "Web Search",
+ "status": "New" // e.g., New, Contacted, Qualified, Archived
+}
+
+3. companies Collection
+      * Purpose: Stores information about client companies that are using the software. Data might be initially populated based on qualified leads from the leads collection.
+      * Document ID: Auto-generated or a custom ID (e.g., a unique company slug). Let's assume auto-generated: companyId.
+      * Document Structure (Example Document /companies/{companyId}):
+{
+ "companyName": "Example Supermarket Co.",
+ "companyWebsite": "https://examplemart.com",
+ "businessRegistrationNumber": "ABN123456",
+ "primaryContactName": "Jane Doe", // Can be updated from initial lead contact
+ "primaryContactEmail": "jane.doe@examplemart.com",
+ "primaryContactPhone": "+1234567890",
+ "numberOfStores": 25, // More specific number once onboarded
+ "address": "123 Main St, Anytown", // Billing/HQ address
+ "subscriptionStatus": "Active", // e.g., Active, Trial, Suspended
+ "createdAt": "Timestamp",
+ "onboardedBy": "adminUserId", // Reference to the admin who onboarded them
+ "originalLeadId": "leadDocumentId" // Optional: Link back to the raw lead submission
+}
+
+      * Subcollections of /companies/{companyId}:
+         * stores
+         * categories
+         * brands
+         * suppliers
+         * products
+         * fixtures
+         * planograms
+4. users Collection
+         * Purpose: Stores user profile information, linked to Firebase Authentication UIDs and a specific company.
+         * Document ID: Firebase Authentication User ID (uid).
+         * Document Structure (Example Document /users/{uid}):
+{
+ "email": "category.manager@examplemart.com", // From Firebase Auth
+ "displayName": "John Smith",
+ "role": "CategoryManager", // e.g., 'Admin', 'CategoryManager'
+ "companyId": "companyId_of_ExampleSupermarketCo", // **REQUIRED: Links user to a company**
+ "createdAt": "Timestamp",
+ "lastLogin": "Timestamp",
+ "isActive": true
+}
+
+5. /companies/{companyId}/stores Subcollection
+            * Purpose: Stores details of individual store locations belonging to a company.
+            * Document ID: Auto-generated or custom store code: storeId.
+            * Document Structure (Example Document /companies/{companyId}/stores/{storeId}):
+{
+ "storeName": "Downtown Branch",
+ "address": "456 Market St, Anytown",
+ "storeCode": "DT01", // Optional internal code
+ "createdAt": "Timestamp"
+}
+
+6. /companies/{companyId}/categories Subcollection
+               * Purpose: Stores product categories defined by the company.
+               * Document ID: Auto-generated: categoryId.
+               * Document Structure (Example Document /companies/{companyId}/categories/{categoryId}):
+{
+ "categoryName": "Beverages",
+ "description": "All drinks, sodas, juices, water.",
+ "createdAt": "Timestamp"
+}
+
+7. /companies/{companyId}/brands Subcollection
+                  * Purpose: Stores product brands relevant to the company.
+                  * Document ID: Auto-generated: brandId.
+                  * Document Structure (Example Document /companies/{companyId}/brands/{brandId}):
+{
+ "brandName": "Example Cola",
+ "createdAt": "Timestamp"
+}
+
+8. /companies/{companyId}/suppliers Subcollection
+                     * Purpose: Stores supplier information relevant to the company.
+                     * Document ID: Auto-generated: supplierId.
+                     * Document Structure (Example Document /companies/{companyId}/suppliers/{supplierId}):
+{
+ "supplierName": "Example Beverage Distributor",
+ "contactInfo": "distributor@example.com",
+ "createdAt": "Timestamp"
+}
+
+9. /companies/{companyId}/fixtures Subcollection
+                        * Purpose: Stores fixture definitions available to the company.
+                        * Document ID: Auto-generated: fixtureId.
+                        * Document Structure (Example Document /companies/{companyId}/fixtures/{fixtureId}):
+{
+ "fixtureName": "Aisle 5 Standard Gondola",
+ "fixtureType": "Gondola", // 'Gondola', 'Shelf', 'Cooler'
+ "width": 120.0, // In cm or inches - be consistent
+ "height": 180.0,
+ "depth": 45.0,
+ "numShelves": 5,
+ "shelfDetails": [ // Example if shelves vary
+   { "shelfNum": 1, "height": 40.0, "depth": 45.0 },
+   { "shelfNum": 2, "height": 35.0, "depth": 45.0 },
+   // ... up to numShelves
+ ],
+ "createdAt": "Timestamp"
+}
+
+10. /companies/{companyId}/products Subcollection
+                           * Purpose: Stores product details managed by the company.
+                           * Document ID: Auto-generated: productId.
+                           * Document Structure (Example Document /companies/{companyId}/products/{productId}):
+{
+ "sku": "EC12345",
+ "productName": "Example Cola 1.25L",
+ "description": "Refreshing cola drink.",
+ "imageUrl": "https://example.com/image.jpg",
+ "dimensions": { // Nested object for dimensions
+   "width": 8.0,
+   "height": 30.0,
+   "depth": 8.0
+ },
+ "mrp": 2.50,
+ "costPrice": 1.10,
+ // References to other documents within the SAME company's subcollections
+ "categoryId": "categoryId_for_Beverages",
+ "brandId": "brandId_for_ExampleCola",
+ "supplierId": "supplierId_for_ExampleDistributor",
+ "createdAt": "Timestamp",
+ "updatedAt": "Timestamp"
+}
+
+11. /companies/{companyId}/planograms Subcollection
+                              * Purpose: Stores planogram definitions created by the company's users.
+                              * Document ID: Auto-generated: planogramId.
+                              * Document Structure (Example Document /companies/{companyId}/planograms/{planogramId}):
+{
+ "planogramName": "Aisle 5 Cola POG - Q3 2025",
+ "description": "Focus on promoting Example Cola variants.",
+ "fixtureId": "fixtureId_for_Aisle5Gondola", // Reference to a fixture in the same company
+ "categoryId": "categoryId_for_Beverages", // Primary category focus
+ "storeId": "storeId_for_DowntownBranch", // Optional: Reference to a specific store
+ "status": "Draft", // 'Draft', 'Active', 'Archived'
+ "effectiveStartDate": "Date", // Firestore Timestamp or ISO String
+ "effectiveEndDate": "Date",
+ "createdByUserId": "userId_of_JohnSmith", // Reference to a user document ID
+ "createdAt": "Timestamp",
+ "updatedAt": "Timestamp",
+
+ // Embedded Planogram Items Data
+ "items": [ // Array of placed items
+   {
+     "planogramItemId": "auto_generated_or_simple_uuid_1", // Unique within this array
+     "productId": "productId_for_ExampleCola1.25L", // Reference to product
+     "shelfNumber": 3,
+     "positionX": 10.5, // Position from left
+     "facings": 5,
+     "stackHeight": 1,
+     "orientation": "Front"
+   },
+   {
+     "planogramItemId": "auto_generated_or_simple_uuid_2",
+     "productId": "productId_for_ExampleDietCola",
+     "shelfNumber": 3,
+     "positionX": 55.0, // Next to the first product
+     "facings": 4,
+     "stackHeight": 1,
+     "orientation": "Front"
+   }
+   // ... more items
+ ]
+ // Alternatively, 'items' could be its own subcollection if planograms get very large
+ // e.g., /companies/{cId}/planograms/{pId}/items/{itemId}
+}
+
+Summary of Changes:
+                                 * Database Type: Shifted from Relational (PostgreSQL) to NoSQL Document (Firestore).
+                                 * Company Centric: Introduced a top-level companies collection. Most business data (products, fixtures, planograms, etc.) are now stored in subcollections under a specific company document, ensuring data isolation.
+                                 * User Linking: Users in the top-level users collection are explicitly linked to a company via companyId.
+                                 * Interest Form: Added an optional leads collection for raw submissions and integrated company details into the companies collection.
+                                 * App Config: Added an appConfig collection for global settings like the recipient email.
+                                 * Planogram Items: Embedded the PlanogramItems data as an array within the planogram document for simpler retrieval, assuming planograms won't have an excessive number of items. This could be changed to a subcollection if needed for scale or complex item querying.
+This structure leverages Firestore's capabilities for hierarchical data and provides a scalable foundation for your multi-tenant planogram application. Remember to set up appropriate Firestore Security Rules to enforce data access based on user roles and company membership.
